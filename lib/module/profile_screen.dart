@@ -263,33 +263,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const Spacer(),
 
             // ── Hive badge ──
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 24),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: BoxDecoration(
-                color: accent.withValues(alpha: 0.07),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: accent.withValues(alpha: 0.2)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.storage_rounded, color: accent, size: 14),
-                  const SizedBox(width: 7),
-                  Text(
-                    'All data stored locally with Hive',
-                    style: GoogleFonts.nunito(
-                      color: accent,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 20),
+            // Container(
+            //   margin: const EdgeInsets.symmetric(horizontal: 24),
+            //   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            //   decoration: BoxDecoration(
+            //     color: accent.withValues(alpha: 0.07),
+            //     borderRadius: BorderRadius.circular(12),
+            //     border: Border.all(color: accent.withValues(alpha: 0.2)),
+            //   ),
+            //   child: Row(
+            //     mainAxisSize: MainAxisSize.min,
+            //     mainAxisAlignment: MainAxisAlignment.center,
+            //     children: [
+            //       Icon(Icons.storage_rounded, color: accent, size: 14),
+            //       const SizedBox(width: 7),
+            //       Text(
+            //         'All data stored locally with Hive',
+            //         style: GoogleFonts.nunito(
+            //           color: accent,
+            //           fontSize: 11,
+            //           fontWeight: FontWeight.w600,
+            //         ),
+            //       ),
+            //     ],
+            //   ),
+            // ),
+            // const SizedBox(height: 20),
 
             // ── Bismillah ──
             Padding(

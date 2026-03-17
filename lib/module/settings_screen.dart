@@ -351,24 +351,24 @@ class SettingsScreen extends StatelessWidget {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 6),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.storage_rounded,
-                                color: context.subColor,
-                                size: 13,
-                              ),
-                              const SizedBox(width: 5),
-                              Text(
-                                'Powered by Hive local database',
-                                style: GoogleFonts.nunito(
-                                  color: context.subColor,
-                                  fontSize: 11,
-                                ),
-                              ),
-                            ],
-                          ),
+                          // const SizedBox(height: 6),
+                          // Row(
+                          //   children: [
+                          //     Icon(
+                          //       Icons.storage_rounded,
+                          //       color: context.subColor,
+                          //       size: 13,
+                          //     ),
+                          //     const SizedBox(width: 5),
+                          //     Text(
+                          //       'Powered by Hive local database',
+                          //       style: GoogleFonts.nunito(
+                          //         color: context.subColor,
+                          //         fontSize: 11,
+                          //       ),
+                          //     ),
+                          //   ],
+                          // ),
                         ],
                       ),
                     ),

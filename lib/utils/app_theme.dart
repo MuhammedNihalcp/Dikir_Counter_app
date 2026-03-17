@@ -92,8 +92,8 @@ extension ThemeX on BuildContext {
 
 class AppConstants {
   static const String appName = 'Dhikr';
-  static const String appVersion = '2.0.0';
-  static const String developerName = 'Your Name';
+  static const String appVersion = '1.0.0';
+  static const String developerName = 'Muhammed Nihal CP';
   static const String appDescription =
       'A distraction-free dhikr counter to help you stay connected '
       'with daily remembrance of Allah.';
