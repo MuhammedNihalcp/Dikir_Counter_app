@@ -106,27 +106,29 @@ class _CounterScreenState extends State<CounterScreen>
 
   // ── Pause ─────────────────────────────────────────────────────────────────
 
-  void _pause() {
+  void _pause() async {
+    Navigator.pop(context);
     final p = context.read<AppProvider>();
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => _PauseSheet(
-        accent: p.accentColor,
-        isDark: p.isDarkMode,
-        onPause: () async {
-          Navigator.pop(context);
-          await p.pauseSession();
-          if (mounted) Navigator.pop(context);
-        },
-        onDiscard: () {
-          Navigator.pop(context);
-          p.discardActiveSession();
-          Navigator.pop(context);
-        },
-      ),
-    );
+    await p.pauseSession();
+    // showModalBottomSheet(
+    //   context: context,
+    //   backgroundColor: Colors.transparent,
+    //   isScrollControlled: true,
+    //   builder: (_) => _PauseSheet(
+    //     accent: p.accentColor,
+    //     isDark: p.isDarkMode,
+    //     onPause: () async {
+    //       Navigator.pop(context);
+    //       await p.pauseSession();
+    //       if (mounted) Navigator.pop(context);
+    //     },
+    //     onDiscard: () {
+    //       Navigator.pop(context);
+    // p.discardActiveSession();
+    //       Navigator.pop(context);
+    //     },
+    //   ),
+    // );
   }
 
   // ── Save ──────────────────────────────────────────────────────────────────
@@ -194,7 +196,12 @@ class _CounterScreenState extends State<CounterScreen>
         if (session.isCompleted) {
           _complete();
         } else {
-          _pause();
+          if (session.count >= 1) {
+            _pause();
+          } else {
+            Navigator.pop(context);
+            p.discardActiveSession();
+          }
         }
       },
 
@@ -244,7 +251,12 @@ class _CounterScreenState extends State<CounterScreen>
                               if (session.isCompleted) {
                                 _complete();
                               } else {
-                                _pause();
+                                if (session.count >= 1) {
+                                  _pause();
+                                } else {
+                                  Navigator.pop(context);
+                                  p.discardActiveSession();
+                                }
                               }
                             },
                           ),

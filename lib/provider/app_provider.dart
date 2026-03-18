@@ -108,17 +108,17 @@ class AppProvider extends ChangeNotifier {
       status: SessionStatus.paused,
       updatedAt: DateTime.now(),
     );
-    await HiveService.saveSession(paused);
-
     List<DhikrSession> sessions = HiveService.getHistory();
 
-    bool hasSession = sessions.any((s) => s.id == s.id);
+    bool hasSession = sessions.any((se) => se.id == s.id);
 
     // Update profile aggregates
     // _profile.totalCount += completed.count;
     if (!hasSession) {
       _profile.totalSessions += 1;
     }
+
+    await HiveService.saveSession(paused);
     await HiveService.saveProfile(_profile);
     _activeSession = null;
     notifyListeners();
