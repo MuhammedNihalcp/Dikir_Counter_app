@@ -65,7 +65,7 @@ class AppProvider extends ChangeNotifier {
   /// Load a paused session from Hive back into the counter screen.
   Future<void> resumeSession(DhikrSession session) async {
     // Remove from Hive while it's active again
-    await HiveService.deleteSession(session.id);
+    // await HiveService.deleteSession(session.id);
     _activeSession = session.copyWith(
       status: SessionStatus.active,
       updatedAt: DateTime.now(),
@@ -79,6 +79,7 @@ class AppProvider extends ChangeNotifier {
     if (s == null || s.isCompleted) return;
     s.count++;
     s.updatedAt = DateTime.now();
+    _profile.totalCount++;
     // Auto-complete when target reached
     if (s.hasTarget && s.count >= s.targetCount) {
       _activeSession = s.copyWith(status: SessionStatus.completed);
@@ -108,23 +109,41 @@ class AppProvider extends ChangeNotifier {
       updatedAt: DateTime.now(),
     );
     await HiveService.saveSession(paused);
+
+    List<DhikrSession> sessions = HiveService.getHistory();
+
+    bool hasSession = sessions.any((s) => s.id == s.id);
+
+    // Update profile aggregates
+    // _profile.totalCount += completed.count;
+    if (!hasSession) {
+      _profile.totalSessions += 1;
+    }
+    await HiveService.saveProfile(_profile);
     _activeSession = null;
     notifyListeners();
   }
 
   /// Save → persist to Hive with status = completed, update profile totals.
-  Future<void> saveSession() async {
+  Future<void> saveSession({bool isCompleted = false}) async {
     final s = _activeSession;
     if (s == null) return;
     final completed = s.copyWith(
-      status: SessionStatus.completed,
+      status: isCompleted ? SessionStatus.completed : SessionStatus.saved,
       updatedAt: DateTime.now(),
     );
-    await HiveService.saveSession(completed);
+    List<DhikrSession> sessions = HiveService.getHistory();
+
+    bool hasSession = sessions.any((se) => se.id == s.id);
 
     // Update profile aggregates
-    _profile.totalCount += completed.count;
-    _profile.totalSessions += 1;
+    // _profile.totalCount += completed.count;
+    if (!hasSession) {
+      _profile.totalSessions += 1;
+    }
+
+    await HiveService.saveSession(completed);
+
     await HiveService.saveProfile(_profile);
 
     _activeSession = null;
@@ -132,9 +151,11 @@ class AppProvider extends ChangeNotifier {
   }
 
   /// Discard the active session without saving anything.
-  void discardActiveSession() {
+  void discardActiveSession() async {
+    _profile.totalCount -= _activeSession?.count ?? 0;
     _activeSession = null;
     notifyListeners();
+    await HiveService.saveProfile(_profile);
   }
 
   // ════════════════════════════════════════════════════════════════════════════
@@ -143,11 +164,32 @@ class AppProvider extends ChangeNotifier {
 
   Future<void> deleteSession(String id) async {
     await HiveService.deleteSession(id);
+    _profile.totalSessions -= 1;
+    await HiveService.saveProfile(_profile);
     notifyListeners();
   }
 
   Future<void> clearHistory() async {
     await HiveService.clearAllSessions();
+    notifyListeners();
+  }
+
+  Future<void> clearAllData() async {
+    // 1. Delete all sessions from Hive
+    await HiveService.clearAllSessions();
+
+    // 2. Reset profile (keep the name, zero out the counters)
+    _profile.totalCount = 0;
+    _profile.totalSessions = 0;
+    await HiveService.saveProfile(_profile);
+
+    // 3. Reset settings to defaults
+    _settings = AppSettings(); // re-creates with default values
+    await HiveService.saveSettings(_settings);
+
+    // 4. Clear any active in-memory session
+    _activeSession = null;
+
     notifyListeners();
   }
 

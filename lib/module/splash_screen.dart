@@ -247,7 +247,7 @@ class _AppTitle extends StatelessWidget {
             letterSpacing: 4,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 6),
         Container(
           width: 64,
           height: 1.5,

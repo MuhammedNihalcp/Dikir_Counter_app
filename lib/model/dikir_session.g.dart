@@ -160,6 +160,8 @@ class SessionStatusAdapter extends TypeAdapter<SessionStatus> {
         return SessionStatus.paused;
       case 2:
         return SessionStatus.completed;
+      case 3:
+        return SessionStatus.saved;
       default:
         return SessionStatus.active;
     }
@@ -176,6 +178,9 @@ class SessionStatusAdapter extends TypeAdapter<SessionStatus> {
         break;
       case SessionStatus.completed:
         writer.writeByte(2);
+        break;
+      case SessionStatus.saved:
+        writer.writeByte(3);
         break;
     }
   }

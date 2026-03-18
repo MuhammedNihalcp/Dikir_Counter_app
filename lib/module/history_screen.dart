@@ -17,7 +17,6 @@ class HistoryScreen extends StatelessWidget {
   const HistoryScreen({super.key});
 
   // ── helpers ──────────────────────────────────────────────────────────────────
-
   void _resume(BuildContext ctx, AppProvider p, DhikrSession s) async {
     Future<void> go() async {
       await p.resumeSession(s);
@@ -130,7 +129,6 @@ class HistoryScreen extends StatelessWidget {
   );
 
   // ─────────────────────────────────────────────────────────────────────────────
-
   @override
   Widget build(BuildContext context) {
     final p = context.watch<AppProvider>();
@@ -208,7 +206,7 @@ class HistoryScreen extends StatelessWidget {
                 builder: (_, box, _) {
                   final history =
                       box.values
-                          .where((s) => s.status != SessionStatus.active)
+                          // .where((s) => s.status != SessionStatus.active)
                           .toList()
                         ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
@@ -255,6 +253,10 @@ class HistoryScreen extends StatelessWidget {
                         accent: p.accentColor,
                         onResume: s.isPaused ? () => _resume(ctx, p, s) : null,
                         onDelete: () => _delete(ctx, p, s.id),
+                        // onTab: s.isSaved ? () => _resume(ctx, p, s) : null,
+                        onCountinue: s.isSaved
+                            ? () => _resume(ctx, p, s)
+                            : null,
                       );
                     },
                   );
@@ -274,6 +276,7 @@ class _HistoryCard extends StatelessWidget {
   final DhikrSession session;
   final Color accent;
   final VoidCallback? onResume;
+  final VoidCallback? onCountinue;
   final VoidCallback onDelete;
 
   const _HistoryCard({
@@ -281,219 +284,269 @@ class _HistoryCard extends StatelessWidget {
     required this.accent,
     this.onResume,
     required this.onDelete,
+    this.onCountinue,
   });
 
   @override
   Widget build(BuildContext context) {
     final isPaused = session.isPaused;
+    final isSaved = session.isSaved;
     final statusColor = isPaused
         ? const Color(0xFFF59E0B)
         : const Color(0xFF10B981);
-    final statusLabel = isPaused ? '⏸  Paused' : '✅  Completed';
+    final statusLabel = isPaused
+        ? '⏸  Paused'
+        : isSaved
+        ? '💾 Saved'
+        : '✅  Completed';
     final formattedDate = DateFormat(
       'MMM d, y  •  hh:mm a',
     ).format(session.updatedAt);
 
-    return Dismissible(
-      key: Key(session.id),
-      direction: DismissDirection.endToStart,
-      background: Container(
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 24),
-        decoration: BoxDecoration(
-          color: Colors.red.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(22),
-        ),
-        child: const Icon(
-          Icons.delete_rounded,
-          color: Colors.redAccent,
-          size: 22,
-        ),
+    return
+    // Dismissible(
+    //   key: Key(session.id),
+    //   direction: DismissDirection.endToStart,
+    //   background: Container(
+    //     alignment: Alignment.centerRight,
+    //     padding: const EdgeInsets.only(right: 24),
+    //     decoration: BoxDecoration(
+    //       color: Colors.red.withValues(alpha: 0.12),
+    //       borderRadius: BorderRadius.circular(22),
+    //     ),
+    //     child: const Icon(
+    //       Icons.delete_rounded,
+    //       color: Colors.redAccent,
+    //       size: 22,
+    //     ),
+    //   ),
+    //   // onUpdate: (_) => onDelete(),
+    //   onDismissed: (_) => onDelete(),
+    //   child:
+    Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: context.cardBg,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: context.border),
       ),
-      onDismissed: (_) => onDelete(),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: context.cardBg,
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: context.border),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── Top row ──
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (session.arabic.isNotEmpty)
-                        Text(
-                          session.arabic,
-                          style: GoogleFonts.amiri(
-                            color: accent,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          // textDirection: TextDirection.RTL,
-                        ),
-                      Text(
-                        session.title,
-                        style: GoogleFonts.nunito(
-                          color: context.textColor,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        formattedDate,
-                        style: GoogleFonts.nunito(
-                          color: context.subColor,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Top row ──
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (session.arabic.isNotEmpty)
+                      Text(
+                        session.arabic,
+                        style: GoogleFonts.amiri(
+                          color: accent,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        // textDirection: TextDirection.RTL,
+                      ),
                     Text(
-                      session.count.toString(),
-                      style: GoogleFonts.orbitron(
-                        color: accent,
-                        fontSize: 30,
-                        fontWeight: FontWeight.w700,
+                      session.title,
+                      style: GoogleFonts.nunito(
+                        color: context.textColor,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 16,
                       ),
                     ),
+                    const SizedBox(height: 3),
                     Text(
-                      'counts',
+                      formattedDate,
                       style: GoogleFonts.nunito(
                         color: context.subColor,
                         fontSize: 11,
                       ),
                     ),
-                    if (session.hasTarget)
-                      Text(
-                        '/ ${session.targetCount}',
-                        style: GoogleFonts.nunito(
-                          color: context.subColor,
-                          fontSize: 11,
-                        ),
-                      ),
                   ],
                 ),
-              ],
-            ),
-
-            // ── Progress bar (if has target) ──
-            if (session.hasTarget) ...[
-              const SizedBox(height: 10),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: session.progress,
-                  backgroundColor: accent.withValues(alpha: 0.12),
-                  color: accent,
-                  minHeight: 4,
-                ),
               ),
-            ],
-
-            const SizedBox(height: 12),
-
-            // ── Footer ──
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: statusColor.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: Text(
-                    statusLabel,
-                    style: GoogleFonts.nunito(
-                      color: statusColor,
-                      fontSize: 11,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    session.count.toString(),
+                    style: GoogleFonts.orbitron(
+                      color: accent,
+                      fontSize: 30,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                ),
-                const Spacer(),
-                // Delete icon
-                GestureDetector(
-                  onTap: onDelete,
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.red.withValues(alpha: 0.07),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.delete_outline_rounded,
-                      color: Colors.redAccent,
-                      size: 16,
+                  Text(
+                    'counts',
+                    style: GoogleFonts.nunito(
+                      color: context.subColor,
+                      fontSize: 11,
                     ),
                   ),
-                ),
-                // Resume button (only for paused)
-                if (onResume != null) ...[
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: onResume,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 9,
-                      ),
-                      decoration: BoxDecoration(
-                        color: accent,
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: accent.withValues(alpha: 0.32),
-                            blurRadius: 12,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.play_arrow_rounded,
-                            color: Colors.white,
-                            size: 15,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Resume',
-                            style: GoogleFonts.nunito(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
+                  if (session.hasTarget)
+                    Text(
+                      '/ ${session.targetCount}',
+                      style: GoogleFonts.nunito(
+                        color: context.subColor,
+                        fontSize: 11,
                       ),
                     ),
-                  ),
                 ],
-              ],
+              ),
+            ],
+          ),
+
+          // ── Progress bar (if has target) ──
+          if (session.hasTarget) ...[
+            const SizedBox(height: 10),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: session.progress,
+                backgroundColor: accent.withValues(alpha: 0.12),
+                color: accent,
+                minHeight: 4,
+              ),
             ),
           ],
-        ),
+
+          const SizedBox(height: 12),
+
+          // ── Footer ──
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: statusColor.withValues(alpha: 0.3)),
+                ),
+                child: Text(
+                  statusLabel,
+                  style: GoogleFonts.nunito(
+                    color: statusColor,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const Spacer(),
+              // Delete icon
+              GestureDetector(
+                onTap: onDelete,
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withValues(alpha: 0.07),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.delete_outline_rounded,
+                    color: Colors.redAccent,
+                    size: 16,
+                  ),
+                ),
+              ),
+              // Resume button (only for paused)
+              if (onResume != null) ...[
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: onResume,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 9,
+                    ),
+                    decoration: BoxDecoration(
+                      color: accent,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: accent.withValues(alpha: 0.32),
+                          blurRadius: 12,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.play_arrow_rounded,
+                          color: Colors.white,
+                          size: 15,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Resume',
+                          style: GoogleFonts.nunito(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+              // Countinue button (only for saved)
+              if (onCountinue != null) ...[
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: onCountinue,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 9,
+                    ),
+                    decoration: BoxDecoration(
+                      color: accent,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: accent.withValues(alpha: 0.32),
+                          blurRadius: 12,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.play_arrow_rounded,
+                          color: Colors.white,
+                          size: 15,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Countinue',
+                          style: GoogleFonts.nunito(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ],
       ),
+      // ),
     );
   }
 }

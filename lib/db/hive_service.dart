@@ -14,6 +14,7 @@ class HiveService {
   static const String _sessionsBoxName = 'sessions';
   static const String _profileBoxName = 'profile';
   static const String _settingsBoxName = 'settings';
+  static const String _newDhikrBoxName = 'newdhikr';
 
   // Profile / settings keys
   static const String _profileKey = 'profile';
@@ -67,7 +68,7 @@ class HiveService {
   /// Returns only paused + completed sessions.
   static List<DhikrSession> getHistory() {
     final list = _sessions.values
-        .where((s) => s.status != SessionStatus.active)
+        // .where((s) => s.status != SessionStatus.active)
         .toList();
     list.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
     return list;

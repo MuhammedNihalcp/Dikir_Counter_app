@@ -1,3 +1,5 @@
+import 'package:counter_app/db/hive_service.dart';
+import 'package:counter_app/model/dikir_session.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -108,10 +110,12 @@ class HomeScreen extends StatelessWidget {
                     ),
 
                     // Active session banner
-                    if (p.activeSession != null) ...[
+                    if (HiveService.getHistory().isNotEmpty &&
+                        HiveService.getHistory().first.status !=
+                            SessionStatus.completed) ...[
                       const SizedBox(height: 18),
                       _ActiveBanner(
-                        session: p.activeSession!,
+                        session: HiveService.getHistory().first,
                         accent: accent,
                         isDark: p.isDarkMode,
                         onResume: () => _pushCounter(context),
@@ -120,6 +124,32 @@ class HomeScreen extends StatelessWidget {
                     const SizedBox(height: 20),
                   ],
                 ),
+              ),
+            ),
+          ),
+          // ── Custom Dhikr button ──
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+              child: _CustomDhikrBtn(
+                accent: accent,
+                onTap: () async {
+                  final result = await Navigator.push<Map<String, dynamic>>(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const CreateDhikrScreen(),
+                    ),
+                  );
+                  if (result != null && context.mounted) {
+                    p.startNewSession(
+                      title: result['title'] as String,
+                      arabic: result['arabic'] as String,
+                      meaning: result['meaning'] as String,
+                      targetCount: result['targetCount'] as int,
+                    );
+                    _pushCounter(context);
+                  }
+                },
               ),
             ),
           ),
@@ -165,33 +195,6 @@ class HomeScreen extends StatelessWidget {
                 mainAxisSpacing: 12,
                 crossAxisSpacing: 12,
                 childAspectRatio: 1.08,
-              ),
-            ),
-          ),
-
-          // ── Custom Dhikr button ──
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-              child: _CustomDhikrBtn(
-                accent: accent,
-                onTap: () async {
-                  final result = await Navigator.push<Map<String, dynamic>>(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const CreateDhikrScreen(),
-                    ),
-                  );
-                  if (result != null && context.mounted) {
-                    p.startNewSession(
-                      title: result['title'] as String,
-                      arabic: result['arabic'] as String,
-                      meaning: result['meaning'] as String,
-                      targetCount: result['targetCount'] as int,
-                    );
-                    _pushCounter(context);
-                  }
-                },
               ),
             ),
           ),
@@ -257,6 +260,14 @@ class _ActiveBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isPaused = session.isPaused;
+    final isSaved = session.isSaved;
+
+    final statusLabel = isPaused
+        ? '⏸ Paused'
+        : isSaved
+        ? '💾 Saved'
+        : 'Active';
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -283,7 +294,7 @@ class _ActiveBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Active: ${session.title}',
+                  '$statusLabel: ${session.arabic}',
                   style: GoogleFonts.nunito(
                     color: context.textColor,
                     fontWeight: FontWeight.w700,

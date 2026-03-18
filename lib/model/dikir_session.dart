@@ -14,6 +14,9 @@ enum SessionStatus {
 
   @HiveField(2)
   completed,
+
+  @HiveField(3)
+  saved,
 }
 
 // ─── DhikrSession ────────────────────────────────────────────────────────────
@@ -63,6 +66,7 @@ class DhikrSession extends HiveObject {
   bool get isCompleted => status == SessionStatus.completed;
   bool get isPaused => status == SessionStatus.paused;
   bool get isActive => status == SessionStatus.active;
+  bool get isSaved => status == SessionStatus.saved;
   bool get hasTarget => targetCount > 0;
   double get progress =>
       hasTarget ? (count / targetCount).clamp(0.0, 1.0) : 0.0;

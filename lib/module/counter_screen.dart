@@ -150,6 +150,27 @@ class _CounterScreenState extends State<CounterScreen>
     Navigator.pop(context);
   }
 
+  // ── Complete ──────────────────────────────────────────────────────────────────
+
+  Future<void> _complete() async {
+    final p = context.read<AppProvider>();
+    await p.saveSession(isCompleted: true);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          '✅  Session completed to history',
+          style: GoogleFonts.nunito(fontWeight: FontWeight.w700),
+        ),
+        backgroundColor: p.accentColor,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
+    Navigator.pop(context);
+  }
+
   // ─────────────────────────────────────────────────────────────────────────
 
   @override
@@ -165,237 +186,315 @@ class _CounterScreenState extends State<CounterScreen>
       );
     }
 
-    return Scaffold(
-      backgroundColor: context.bg,
-      body: GestureDetector(
-        onTap: _onTap,
-        behavior: HitTestBehavior.opaque,
-        child: Stack(
-          children: [
-            // Radial glow background
-            Positioned.fill(
-              child: AnimatedBuilder(
-                animation: _pulseAnim,
-                builder: (_, _) => CustomPaint(
-                  painter: _GlowPainter(accent, _pulseAnim.value),
-                ),
-              ),
-            ),
+    return PopScope(
+      canPop: false, // Set to false to intercept the pop
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        // Your function call here
+        if (session.isCompleted) {
+          _complete();
+        } else {
+          _pause();
+        }
+      },
 
-            // Ripple
-            if (_rippleVisible)
+      child: Scaffold(
+        backgroundColor: context.bg,
+        body: GestureDetector(
+          onTap: _onTap,
+          behavior: HitTestBehavior.opaque,
+          child: Stack(
+            children: [
+              // Radial glow background
               Positioned.fill(
                 child: AnimatedBuilder(
-                  animation: _rippleAnim,
+                  animation: _pulseAnim,
                   builder: (_, _) => CustomPaint(
-                    painter: _RipplePainter(accent, _rippleAnim.value),
+                    painter: _GlowPainter(accent, _pulseAnim.value),
                   ),
                 ),
               ),
 
-            SafeArea(
-              child: Column(
-                children: [
-                  // ── Top bar ──
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 14,
+              // Ripple
+              if (_rippleVisible)
+                Positioned.fill(
+                  child: AnimatedBuilder(
+                    animation: _rippleAnim,
+                    builder: (_, _) => CustomPaint(
+                      painter: _RipplePainter(accent, _rippleAnim.value),
                     ),
-                    child: Row(
-                      children: [
-                        _CircleBtn(
-                          icon: Icons.arrow_back_ios_rounded,
-                          accent: accent,
-                          onTap: () => Navigator.pop(context),
-                        ),
-                        const Spacer(),
-                        if (!session.isCompleted)
+                  ),
+                ),
+
+              SafeArea(
+                child: Column(
+                  children: [
+                    // ── Top bar ──
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 14,
+                      ),
+                      child: Row(
+                        children: [
                           _CircleBtn(
-                            icon: Icons.pause_rounded,
+                            icon: Icons.arrow_back_ios_rounded,
                             accent: accent,
-                            onTap: _pause,
+                            onTap: () {
+                              if (session.isCompleted) {
+                                _complete();
+                              } else {
+                                _pause();
+                              }
+                            },
                           ),
-                      ],
-                    ),
-                  ),
+                          const Spacer(),
 
-                  // ── Dhikr info ──
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 28),
-                    child: Column(
-                      children: [
-                        if (session.arabic.isNotEmpty)
-                          Text(
-                            session.arabic,
-                            style: GoogleFonts.amiri(
-                              color: accent,
-                              fontSize: 30,
-                              fontWeight: FontWeight.bold,
+                          if (!session.isCompleted)
+                            _CircleBtn(
+                              icon: Icons.pause_rounded,
+                              accent: accent,
+                              onTap: _pause,
                             ),
-                            textDirection: TextDirection.rtl,
-                          ),
-                        const SizedBox(height: 4),
-                        Text(
-                          session.title,
-                          style: GoogleFonts.nunito(
-                            color: context.textColor,
-                            fontSize: 22,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                        if (session.meaning.isNotEmpty)
-                          Text(
-                            session.meaning,
-                            style: GoogleFonts.nunito(
-                              color: context.subColor,
-                              fontSize: 13,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-
-                  const Spacer(),
-
-                  // ── Big count ──
-                  AnimatedBuilder(
-                    animation: _bumpAnim,
-                    builder: (_, child) =>
-                        Transform.scale(scale: _bumpAnim.value, child: child),
-                    child: Text(
-                      session.count.toString(),
-                      style: GoogleFonts.orbitron(
-                        color: context.textColor,
-                        fontSize: 100,
-                        fontWeight: FontWeight.w700,
-                        height: 1,
+                          // const SizedBox(width: 10),
+                          // _CircleBtn(
+                          //   icon: Icons.pause_rounded,
+                          //   accent: accent,
+                          //   onTap: _pause,
+                          // ),
+                        ],
                       ),
                     ),
-                  ),
 
-                  // ── Progress bar ──
-                  if (session.hasTarget) ...[
-                    const SizedBox(height: 18),
+                    // ── Dhikr info ──
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 56),
+                      padding: const EdgeInsets.symmetric(horizontal: 28),
                       child: Column(
                         children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(4),
-                            child: LinearProgressIndicator(
-                              value: session.progress,
-                              backgroundColor: accent.withValues(alpha: 0.15),
-                              color: accent,
-                              minHeight: 6,
+                          if (session.arabic.isNotEmpty)
+                            Text(
+                              session.arabic,
+                              style: GoogleFonts.amiri(
+                                color: accent,
+                                fontSize: 30,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textDirection: TextDirection.rtl,
+                            ),
+                          const SizedBox(height: 4),
+                          Text(
+                            session.title,
+                            style: GoogleFonts.nunito(
+                              color: context.textColor,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w900,
                             ),
                           ),
-                          const SizedBox(height: 6),
-                          Text(
-                            '${session.count} / ${session.targetCount}',
-                            style: GoogleFonts.nunito(
-                              color: context.subColor,
-                              fontSize: 12,
+                          if (session.meaning.isNotEmpty)
+                            Text(
+                              session.meaning,
+                              style: GoogleFonts.nunito(
+                                color: context.subColor,
+                                fontSize: 13,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+
+                    const Spacer(),
+
+                    // ── Big count ──
+                    AnimatedBuilder(
+                      animation: _bumpAnim,
+                      builder: (_, child) =>
+                          Transform.scale(scale: _bumpAnim.value, child: child),
+                      child: Text(
+                        session.count.toString(),
+                        style: GoogleFonts.orbitron(
+                          color: context.textColor,
+                          fontSize: 100,
+                          fontWeight: FontWeight.w700,
+                          height: 1,
+                        ),
+                      ),
+                    ),
+
+                    // ── Progress bar ──
+                    if (session.hasTarget) ...[
+                      const SizedBox(height: 18),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 56),
+                        child: Column(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(4),
+                              child: LinearProgressIndicator(
+                                value: session.progress,
+                                backgroundColor: accent.withValues(alpha: 0.15),
+                                color: accent,
+                                minHeight: 6,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              '${session.count} / ${session.targetCount}',
+                              style: GoogleFonts.nunito(
+                                color: context.subColor,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+
+                    // ── Completed badge ──
+                    if (session.isCompleted)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 10),
+                        child: Text(
+                          '🎉  Target Reached!',
+                          style: GoogleFonts.nunito(
+                            color: accent,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+
+                    const Spacer(),
+
+                    // ── Tap button ──
+                    _TapBtn(
+                      accent: accent,
+                      isCompleted: session.isCompleted,
+                      pulseAnim: _pulseAnim,
+                      onTap: _onTap,
+                    ),
+
+                    const Spacer(),
+
+                    // ── Bottom actions ──
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                      child: Row(
+                        children: [
+                          // Reset
+                          Expanded(
+                            child: _CircleBtn(
+                              icon: Icons.refresh_rounded,
+                              accent: accent,
+                              onTap: () => showDialog(
+                                context: context,
+                                builder: (_) => AlertDialog(
+                                  title: Text(
+                                    'Reset?',
+                                    style: GoogleFonts.nunito(
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                  content: Text(
+                                    'Count will be reset to 0.',
+                                    style: GoogleFonts.nunito(),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: const Text('Cancel'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                        p.resetCounter();
+                                      },
+                                      child: const Text('Reset'),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              height: 52,
+                              iconSize: 24,
+                            ),
+                            //  _ActionBtn(
+                            //   icon: Icons.refresh_rounded,
+                            //   label: 'Reset',
+                            //   color: accent.withValues(alpha: 0.1),
+                            //   textColor: accent,
+                            //   borderColor: accent.withValues(alpha: 0.25),
+                            // onTap: () => showDialog(
+                            //   context: context,
+                            //   builder: (_) => AlertDialog(
+                            //     title: Text(
+                            //       'Reset?',
+                            //       style: GoogleFonts.nunito(
+                            //         fontWeight: FontWeight.w800,
+                            //       ),
+                            //     ),
+                            //     content: Text(
+                            //       'Count will be reset to 0.',
+                            //       style: GoogleFonts.nunito(),
+                            //     ),
+                            //     actions: [
+                            //       TextButton(
+                            //         onPressed: () => Navigator.pop(context),
+                            //         child: const Text('Cancel'),
+                            //       ),
+                            //       TextButton(
+                            //         onPressed: () {
+                            //           Navigator.pop(context);
+                            //           p.resetCounter();
+                            //         },
+                            //         child: const Text('Reset'),
+                            //       ),
+                            //     ],
+                            //   ),
+                            // ),
+                            // ),
+                          ),
+                          const SizedBox(width: 8),
+                          // Save
+                          if (!session.isCompleted)
+                            Expanded(
+                              flex: 2,
+                              child: _ActionBtn(
+                                icon: Icons.check_circle_rounded,
+                                label: 'Save',
+                                color: accent,
+                                textColor: Colors.white,
+                                onTap: _save,
+                                shadow: BoxShadow(
+                                  color: accent.withValues(alpha: 0.38),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 6),
+                                ),
+                              ),
+                            ),
+                          const SizedBox(width: 8),
+                          // Save
+                          Expanded(
+                            flex: 3,
+                            child: _ActionBtn(
+                              icon: Icons.check_circle_rounded,
+                              label: 'Complete',
+                              color: accent,
+                              textColor: Colors.white,
+                              onTap: _complete,
+                              shadow: BoxShadow(
+                                color: accent.withValues(alpha: 0.38),
+                                blurRadius: 20,
+                                offset: const Offset(0, 6),
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
                   ],
-
-                  // ── Completed badge ──
-                  if (session.isCompleted)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 10),
-                      child: Text(
-                        '🎉  Target Reached!',
-                        style: GoogleFonts.nunito(
-                          color: accent,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ),
-
-                  const Spacer(),
-
-                  // ── Tap button ──
-                  _TapBtn(
-                    accent: accent,
-                    isCompleted: session.isCompleted,
-                    pulseAnim: _pulseAnim,
-                    onTap: _onTap,
-                  ),
-
-                  const Spacer(),
-
-                  // ── Bottom actions ──
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-                    child: Row(
-                      children: [
-                        // Reset
-                        Expanded(
-                          child: _ActionBtn(
-                            icon: Icons.refresh_rounded,
-                            label: 'Reset',
-                            color: accent.withValues(alpha: 0.1),
-                            textColor: accent,
-                            borderColor: accent.withValues(alpha: 0.25),
-                            onTap: () => showDialog(
-                              context: context,
-                              builder: (_) => AlertDialog(
-                                title: Text(
-                                  'Reset?',
-                                  style: GoogleFonts.nunito(
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                                content: Text(
-                                  'Count will be reset to 0.',
-                                  style: GoogleFonts.nunito(),
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context),
-                                    child: const Text('Cancel'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.pop(context);
-                                      p.resetCounter();
-                                    },
-                                    child: const Text('Reset'),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        // Save
-                        Expanded(
-                          flex: 2,
-                          child: _ActionBtn(
-                            icon: Icons.check_circle_rounded,
-                            label: 'Save Session',
-                            color: accent,
-                            textColor: Colors.white,
-                            onTap: _save,
-                            shadow: BoxShadow(
-                              color: accent.withValues(alpha: 0.38),
-                              blurRadius: 20,
-                              offset: const Offset(0, 6),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -481,10 +580,14 @@ class _CircleBtn extends StatelessWidget {
   final IconData icon;
   final Color accent;
   final VoidCallback onTap;
+  final double height;
+  final double iconSize;
   const _CircleBtn({
     required this.icon,
     required this.accent,
     required this.onTap,
+    this.height = 42,
+    this.iconSize = 18,
   });
 
   @override
@@ -492,13 +595,13 @@ class _CircleBtn extends StatelessWidget {
     onTap: onTap,
     child: Container(
       width: 42,
-      height: 42,
+      height: height,
       decoration: BoxDecoration(
         color: accent.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: accent.withValues(alpha: 0.2)),
       ),
-      child: Icon(icon, color: context.textColor, size: 18),
+      child: Icon(icon, color: context.textColor, size: iconSize),
     ),
   );
 }

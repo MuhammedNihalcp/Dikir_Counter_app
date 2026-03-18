@@ -9,6 +9,179 @@ import 'profile_screen.dart';
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
+  // ── Clear all data confirmation ───────────────────────────────────────────
+  void _confirmClearAll(BuildContext context, AppProvider p) {
+    final accent = p.accentColor;
+    final isDark = p.isDarkMode;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => Container(
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.darkCard : Colors.white,
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(color: Colors.red.withValues(alpha: 0.25)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle
+            const SizedBox(height: 12),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 28),
+
+            // Warning icon
+            Container(
+              width: 68,
+              height: 68,
+              decoration: BoxDecoration(
+                color: Colors.red.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.red.withValues(alpha: 0.3),
+                  width: 1.5,
+                ),
+              ),
+              child: const Icon(
+                Icons.delete_forever_rounded,
+                color: Colors.redAccent,
+                size: 32,
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            Text(
+              'Clear All Data',
+              style: GoogleFonts.nunito(
+                color: isDark ? Colors.white : AppColors.lightText,
+                fontSize: 20,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Text(
+                'This will permanently delete all your sessions, '
+                'history, profile data, and reset all settings. '
+                'This action cannot be undone.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.nunito(
+                  color: isDark ? AppColors.darkSub : AppColors.lightSub,
+                  fontSize: 13,
+                  height: 1.6,
+                ),
+              ),
+            ),
+            const SizedBox(height: 28),
+
+            // Buttons
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  // Cancel
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                        decoration: BoxDecoration(
+                          color: accent.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: accent.withValues(alpha: 0.25),
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            'Cancel',
+                            style: GoogleFonts.nunito(
+                              color: accent,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+
+                  // Confirm delete
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () async {
+                        Navigator.pop(context);
+                        await p.clearAllData();
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                '🗑  All data cleared successfully',
+                                style: GoogleFonts.nunito(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              backgroundColor: Colors.red.shade600,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              margin: const EdgeInsets.all(16),
+                            ),
+                          );
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade600,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.red.withValues(alpha: 0.35),
+                              blurRadius: 16,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Text(
+                            'Clear All',
+                            style: GoogleFonts.nunito(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
     final p = context.watch<AppProvider>();
@@ -19,7 +192,7 @@ class SettingsScreen extends StatelessWidget {
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
-            // ── Title ──
+            // ── Title ──────────────────────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(24, 22, 24, 8),
@@ -34,7 +207,7 @@ class SettingsScreen extends StatelessWidget {
               ),
             ),
 
-            // ── Profile card ──
+            // ── Profile card ───────────────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -113,7 +286,7 @@ class SettingsScreen extends StatelessWidget {
 
             const SliverToBoxAdapter(child: SizedBox(height: 22)),
 
-            // ── Appearance ──
+            // ── Appearance ─────────────────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -130,7 +303,7 @@ class SettingsScreen extends StatelessWidget {
                       ),
                       child: Column(
                         children: [
-                          // Dark mode
+                          // Dark mode toggle
                           _Tile(
                             icon: p.isDarkMode
                                 ? Icons.dark_mode_rounded
@@ -144,13 +317,13 @@ class SettingsScreen extends StatelessWidget {
                             ),
                           ),
                           Divider(height: 1, color: context.border),
-                          // Accent colour label
+
+                          // Accent colour
                           _Tile(
                             icon: Icons.palette_rounded,
                             label: 'Accent Color',
                             accent: accent,
                           ),
-                          // Colour swatches
                           Padding(
                             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                             child: Wrap(
@@ -204,7 +377,7 @@ class SettingsScreen extends StatelessWidget {
 
             const SliverToBoxAdapter(child: SizedBox(height: 22)),
 
-            // ── Feedback ──
+            // ── Feedback ───────────────────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -254,7 +427,86 @@ class SettingsScreen extends StatelessWidget {
 
             const SliverToBoxAdapter(child: SizedBox(height: 22)),
 
-            // ── About ──
+            // ── Data & Storage ─────────────────────────────────────────────
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _Label('DATA & STORAGE'),
+                    const SizedBox(height: 10),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: context.cardBg,
+                        borderRadius: BorderRadius.circular(22),
+                        border: Border.all(color: context.border),
+                      ),
+                      child: GestureDetector(
+                        onTap: () => _confirmClearAll(context, p),
+                        behavior: HitTestBehavior.opaque,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 13,
+                          ),
+                          child: Row(
+                            children: [
+                              // Red icon box
+                              Container(
+                                width: 36,
+                                height: 36,
+                                decoration: BoxDecoration(
+                                  color: Colors.red.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(
+                                  Icons.delete_forever_rounded,
+                                  color: Colors.redAccent,
+                                  size: 18,
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Clear All Data',
+                                      style: GoogleFonts.nunito(
+                                        color: Colors.redAccent,
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    Text(
+                                      'Delete sessions, history & reset profile',
+                                      style: GoogleFonts.nunito(
+                                        color: context.subColor,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Icon(
+                                Icons.chevron_right_rounded,
+                                color: Colors.redAccent,
+                                size: 20,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SliverToBoxAdapter(child: SizedBox(height: 22)),
+
+            // ── About ──────────────────────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -351,24 +603,6 @@ class SettingsScreen extends StatelessWidget {
                               ),
                             ],
                           ),
-                          // const SizedBox(height: 6),
-                          // Row(
-                          //   children: [
-                          //     Icon(
-                          //       Icons.storage_rounded,
-                          //       color: context.subColor,
-                          //       size: 13,
-                          //     ),
-                          //     const SizedBox(width: 5),
-                          //     Text(
-                          //       'Powered by Hive local database',
-                          //       style: GoogleFonts.nunito(
-                          //         color: context.subColor,
-                          //         fontSize: 11,
-                          //       ),
-                          //     ),
-                          //   ],
-                          // ),
                         ],
                       ),
                     ),
@@ -385,7 +619,7 @@ class SettingsScreen extends StatelessWidget {
   }
 }
 
-// ── Utility widgets ───────────────────────────────────────────────────────────
+// ─── Utility widgets ──────────────────────────────────────────────────────────
 
 class _Label extends StatelessWidget {
   final String text;
