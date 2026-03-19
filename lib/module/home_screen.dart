@@ -118,7 +118,10 @@ class HomeScreen extends StatelessWidget {
                         session: HiveService.getHistory().first,
                         accent: accent,
                         isDark: p.isDarkMode,
-                        onResume: () => _pushCounter(context),
+                        onResume: () async {
+                          await p.resumeSession(HiveService.getHistory().first);
+                          if (context.mounted) _pushCounter(context);
+                        },
                       ),
                     ],
                     const SizedBox(height: 20),
