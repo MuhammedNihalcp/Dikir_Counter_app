@@ -1,5 +1,6 @@
 import 'package:counter_app/db/hive_service.dart';
 import 'package:counter_app/module/splash_screen.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -11,7 +12,9 @@ import 'utils/app_theme.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  GoogleFonts.config.allowRuntimeFetching = false;
+  if (!kDebugMode) {
+    GoogleFonts.config.allowRuntimeFetching = false;
+  }
 
   // Initialise Hive + open all boxes before the app starts
   await HiveService.init();
