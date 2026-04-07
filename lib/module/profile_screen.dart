@@ -140,7 +140,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           child: Center(
                             child: ValueListenableBuilder<Box<UserProfile>>(
                               valueListenable: HiveService.profileListenable,
-                              builder: (_, box, __) {
+                              builder: (_, box, child) {
                                 final name = box.get('profile')?.name ?? 'M';
                                 return Text(
                                   name.isNotEmpty ? name[0].toUpperCase() : 'M',
@@ -162,7 +162,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 24),
                           child: ValueListenableBuilder<Box<UserProfile>>(
                             valueListenable: HiveService.profileListenable,
-                            builder: (_, box, __) {
+                            builder: (_, box, child) {
                               final profile =
                                   box.get('profile') ?? UserProfile();
                               return Row(
